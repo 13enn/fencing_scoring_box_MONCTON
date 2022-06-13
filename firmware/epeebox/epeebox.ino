@@ -15,17 +15,23 @@
 //                                                                           //
 //===========================================================================//
 
+#include <Adafruit_NeoPixel.h>
+#define LEDPIN 6
+
 //============
 // #defines
 //============
 //TODO: set up debug levels correctly
-#define DEBUG 0
-//#define TEST_LIGHTS       // turns on lights for a second on start up
+#define DEBUG 1
+#define TEST_LIGHTS       // turns on lights for a second on start up
 //#define TEST_ADC_SPEED    // used to test sample rate of ADCs
 //#define REPORT_TIMING     // prints timings over serial interface
 #define BUZZERTIME  1000  // length of time the buzzer is kept on after a hit (ms)
 #define LIGHTTIME   3000  // length of time the lights are kept on after a hit (ms)
 #define BAUDRATE   57600  // baudrate of the serial debug interface
+
+Adafruit_NeoPixel strip = Adafruit_NeoPixel(128, LEDPIN, NEO_GRB + NEO_KHZ800);
+
 
 //============
 // Pin Setup
@@ -37,12 +43,12 @@ const uint8_t offTargetB = 11;    // Off Target B Light
 const uint8_t onTargetB  = 12;    // On Target B Light
 const uint8_t shortLEDB  = 13;    // Short Circuit A Light
 
-const uint8_t groundPinA = A0;    // Ground A pin - Analog
-const uint8_t lamePinA   = A1;    // Lame   A pin - Analog (Epee return path)
-const uint8_t weaponPinA = A2;    // Weapon A pin - Analog
-const uint8_t weaponPinB = A3;    // Weapon B pin - Analog
-const uint8_t lamePinB   = A4;    // Lame   B pin - Analog (Epee return path)
-const uint8_t groundPinB = A5;    // Ground B pin - Analog
+const uint8_t groundPinA = A0;    // Ground A pin - Analog: pull down R
+const uint8_t lamePinA   = A1;    // Lame   A pin - Analog (Epee return path): pull down R
+const uint8_t weaponPinA = A2;    // Weapon A pin - Analog: add5v thru 220R
+const uint8_t weaponPinB = A3;    // Weapon B pin - Analog: add5v thru 220R
+const uint8_t lamePinB   = A4;    // Lame   B pin - Analog (Epee return path): pull down R
+const uint8_t groundPinB = A5;    // Ground B pin - Analog :pull down R
 
 const uint8_t buzzerPin  =  3;    // buzzer pin
 
@@ -98,6 +104,9 @@ bool done = false;
 // Configuration
 //================
 void setup() {
+     //initialize LED strip
+  strip.begin();
+  strip.show(); // Initialize all pixels to 'off'
 
    // set the light pins to outputs
    pinMode(offTargetA, OUTPUT);
@@ -108,9 +117,24 @@ void setup() {
    pinMode(shortLEDB,  OUTPUT);
    pinMode(buzzerPin,  OUTPUT);
 
+
 #ifdef TEST_LIGHTS
-   testLights();
+   //testLights();
+  strip.fill(strip.Color(10, 9, 9)); // Fill White
+  strip.show();
+  delay(1000);
+  strip.clear();
+  strip.show();
+  delay(1000);
+
+   //digitalWrite(buzzerPin,  HIGH);
+   //delay(BUZZERTIME);             // wait before turning off the buzzer
+   //digitalWrite(buzzerPin,  LOW);
+
+   
 #endif
+
+
 
    // this optimises the ADC to make the sampling rate quicker
    //adcOpt();
@@ -120,6 +144,8 @@ void setup() {
    Serial.println("================");
 
    resetValues();
+
+
 }
 
 
@@ -161,6 +187,11 @@ void loop() {
       weaponB = analogRead(weaponPinB);
       lameA   = analogRead(lamePinA);
       lameB   = analogRead(lamePinB);
+      
+//#ifdef DEBUG
+//      String serData = String("weaponA  : ") + weaponB  + "\n";
+//      Serial.println(serData);
+//#endif
 
       signalHits();
       epee();
@@ -199,6 +230,8 @@ void epee() {
          } else {
             if (depressAtime + depress[1] <= micros()) {
                hitOnTargA = true;
+               strip.fill(strip.Color(10, 0, 0),0,64); // Fill White
+               strip.show();
             }
          }
       } else {
@@ -220,6 +253,9 @@ void epee() {
          } else {
             if (depressBtime + depress[1] <= micros()) {
                hitOnTargB = true;
+               strip.fill(strip.Color(0, 10, 0),64,64); // Fill White
+               strip.show();
+               
             }
          }
       } else {
@@ -270,6 +306,8 @@ void resetValues() {
    digitalWrite(onTargetB,  LOW);
    digitalWrite(shortLEDA,  LOW);
    digitalWrite(shortLEDB,  LOW);
+   strip.clear();
+   strip.show();
 
    lockedOut    = false;
    depressAtime = 0;
