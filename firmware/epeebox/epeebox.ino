@@ -16,7 +16,7 @@
 //===========================================================================//
 
 #include <Adafruit_NeoPixel.h>
-#define LEDPIN 6
+#define LEDPIN 7
 
 //============
 // #defines

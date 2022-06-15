@@ -14,6 +14,11 @@
 //                                                                           //
 //===========================================================================//
 
+#include <Adafruit_NeoPixel.h>
+
+
+#define LEDPIN 7
+
 //============
 // #defines
 //============
@@ -25,6 +30,8 @@
 #define BUZZERTIME  1000  // length of time the buzzer is kept on after a hit (ms)
 #define LIGHTTIME   3000  // length of time the lights are kept on after a hit (ms)
 #define BAUDRATE   57600  // baudrate of the serial debug interface
+
+Adafruit_NeoPixel strip = Adafruit_NeoPixel(128, LEDPIN, NEO_GRB + NEO_KHZ800);
 
 //============
 // Pin Setup
@@ -114,12 +121,17 @@ bool done = false;
 void setup() {
    // set the internal pullup resistor on modePin
    pinMode(modePin, INPUT_PULLUP);
-
    // add the interrupt to the mode pin (interrupt is pin 0)
-   attachInterrupt(modePin-2, changeMode, FALLING);
-   pinMode(modeLeds[0], OUTPUT);
-   pinMode(modeLeds[1], OUTPUT);
-   pinMode(modeLeds[2], OUTPUT);
+   attachInterrupt(modePin-2, changeMode, RISING);
+
+   //initialize LED strip
+   strip.begin();
+   strip.show(); // Initialize all pixels to 'off'
+   drawE(); //machine starts on epee 
+   delay(1500); 
+   strip.clear();
+   strip.show();
+   
 
    // set the light pins to outputs
    pinMode(offTargetA, OUTPUT);
@@ -130,15 +142,12 @@ void setup() {
    pinMode(shortLEDB,  OUTPUT);
    pinMode(buzzerPin,  OUTPUT);
 
-   digitalWrite(modeLeds[currentMode], HIGH);
-
 #ifdef TEST_LIGHTS
    testLights();
 #endif
 
    // this optimises the ADC to make the sampling rate quicker
    //adcOpt();
-
    Serial.begin(BAUDRATE);
    Serial.println("3 Weapon Scoring Box");
    Serial.println("====================");
@@ -225,20 +234,19 @@ void changeMode() {
 //============================
 void setModeLeds() {
    if (currentMode == FOIL_MODE) {
-      digitalWrite(onTargetA, HIGH);
+      drawF();
    } else {
       if (currentMode == EPEE_MODE) {
-        digitalWrite(onTargetB, HIGH);
+        drawE();
       } else {
          if (currentMode == SABRE_MODE){
-            digitalWrite(onTargetA, HIGH);
-            digitalWrite(onTargetB, HIGH);
+            drawS();
          }
       }
    }
-   delay(500);
-   digitalWrite(onTargetA, LOW);
-   digitalWrite(onTargetB, LOW);
+   delay(1000);
+   strip.clear();
+   strip.show();
 }
 
 
@@ -295,6 +303,8 @@ void foil() {
             } else {
                if (depressAtime + depress[0] <= micros()) {
                   hitOnTargA = true;
+                  strip.fill(strip.Color(10, 0, 0),0,64); // Fill Red
+                  strip.show();
                }
             }
          } else {
@@ -326,6 +336,8 @@ void foil() {
             } else {
                if (depressBtime + depress[0] <= micros()) {
                   hitOnTargB = true;
+                  strip.fill(strip.Color(0, 10, 0),64,64); // Fill Green
+                  strip.show();
                }
             }
          } else {
@@ -357,6 +369,8 @@ void epee() {
          } else {
             if (depressAtime + depress[1] <= micros()) {
                hitOnTargA = true;
+               strip.fill(strip.Color(10, 0, 0),0,64); // Fill Red
+               strip.show();
             }
          }
       } else {
@@ -378,6 +392,8 @@ void epee() {
          } else {
             if (depressBtime + depress[1] <= micros()) {
                hitOnTargB = true;
+               strip.fill(strip.Color(0, 10, 0),64,64); // Fill Green
+               strip.show();
             }
          }
       } else {
@@ -412,6 +428,8 @@ void sabre() {
          } else {
             if (depressAtime + depress[2] <= micros()) {
                hitOnTargA = true;
+               strip.fill(strip.Color(10, 0, 0),0,64); // Fill Red
+               strip.show();
             }
          }
       } else {
@@ -431,6 +449,8 @@ void sabre() {
          } else {
             if (depressBtime + depress[2] <= micros()) {
                hitOnTargB = true;
+               strip.fill(strip.Color(0, 10, 0),64,64); // Fill Green
+               strip.show();
             }
          }
       } else {
@@ -491,6 +511,9 @@ void resetValues() {
    hitOnTargB  = false;
    hitOffTargB = false;
 
+   strip.clear();
+   strip.show();
+
    delay(100);
 }
 
@@ -499,12 +522,58 @@ void resetValues() {
 // Test lights
 //==============
 void testLights() {
-   digitalWrite(offTargetA, HIGH);
-   digitalWrite(onTargetA,  HIGH);
-   digitalWrite(offTargetB, HIGH);
-   digitalWrite(onTargetB,  HIGH);
-   digitalWrite(shortLEDA,  HIGH);
-   digitalWrite(shortLEDB,  HIGH);
+   //digitalWrite(offTargetA, HIGH);
+   //digitalWrite(onTargetA,  HIGH);
+   //digitalWrite(offTargetB, HIGH);
+   //digitalWrite(onTargetB,  HIGH);
+   //digitalWrite(shortLEDA,  HIGH);
+   //digitalWrite(shortLEDB,  HIGH);
+   //delay(1000);
+
+   //strip.fill(strip.Color(10, 9, 9)); // Fill White
+   //strip.show();
+
    delay(1000);
+   strip.clear();
+   strip.show();
+   delay(1000);
+   
    resetValues();
+}
+
+
+void drawE(){
+  //strip.fill(strip.Color(10, 9, 9),18,1); // Fill White  
+  strip.fill(strip.Color(10, 9, 9), 9,6); // Fill White
+  strip.fill(strip.Color(10, 9, 9),17,1); // Fill White
+  strip.fill(strip.Color(10, 9, 9),25,1); // Fill White
+  strip.fill(strip.Color(10, 9, 9),33,5); // Fill White
+  strip.fill(strip.Color(10, 9, 9),41,1); // Fill White
+  strip.fill(strip.Color(10, 9, 9),49,1); // Fill White
+  strip.fill(strip.Color(10, 9, 9),57,6); // Fill White
+  strip.show();
+}
+
+void drawF(){
+  //strip.fill(strip.Color(10, 9, 9),18,1); // Fill White  
+  strip.fill(strip.Color(10, 9, 9), 9,6); // Fill White
+  strip.fill(strip.Color(10, 9, 9),17,1); // Fill White
+  strip.fill(strip.Color(10, 9, 9),25,1); // Fill White
+  strip.fill(strip.Color(10, 9, 9),33,5); // Fill White
+  strip.fill(strip.Color(10, 9, 9),41,1); // Fill White
+  strip.fill(strip.Color(10, 9, 9),49,1); // Fill White
+  strip.fill(strip.Color(10, 9, 9),57,1); // Fill White
+  strip.show();
+}
+
+void drawS(){
+  //strip.fill(strip.Color(10, 9, 9),18,1); // Fill White  
+  strip.fill(strip.Color(10, 9, 9),10,4); // Fill White
+  strip.fill(strip.Color(10, 9, 9),17,1); strip.fill(strip.Color(10, 9, 9),22,1); // Fill White
+  strip.fill(strip.Color(10, 9, 9),25,1); // Fill White
+  strip.fill(strip.Color(10, 9, 9),34,4); // Fill White
+  strip.fill(strip.Color(10, 9, 9),46,1); // Fill White
+  strip.fill(strip.Color(10, 9, 9),49,1); strip.fill(strip.Color(10, 9, 9),54,1); // Fill White
+  strip.fill(strip.Color(10, 9, 9),58,4); // Fill White
+  strip.show();
 }
